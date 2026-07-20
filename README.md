@@ -45,7 +45,7 @@ git clone https://github.com/FineComputer14451/comfyui-grok-image-video-setup.gi
 cd comfyui-grok-image-video-setup
 ```
 
-### 3. Launch with Docker
+### 3. Launch with Docker (recommended)
 ```bash
 # First build (pulls PyTorch + clones ComfyUI — several minutes)
 docker compose up -d --build
@@ -59,6 +59,19 @@ Open → http://localhost:8188
 Stop:
 ```bash
 docker compose down
+```
+
+### 3b. Local install (no Docker)
+```bash
+./scripts/install-local.sh
+./scripts/download-models.sh minimal
+./scripts/run-local.sh   # created by install-local.sh
+```
+Still requires a suitable Python + (for video) CUDA PyTorch stack.
+
+Validate the repo offline anytime:
+```bash
+./scripts/validate.sh
 ```
 
 ### 4. Drop Grok images into `input/`
@@ -148,7 +161,9 @@ comfyui-grok-image-video-setup/
 ├── scripts/
 │   ├── entrypoint.sh
 │   ├── install-custom-nodes.sh
-│   └── download-models.sh
+│   ├── download-models.sh
+│   ├── install-local.sh
+│   └── validate.sh
 ├── docs/
 │   ├── MODELS.md
 │   └── GROK_HANDOFF.md
@@ -179,7 +194,9 @@ docker compose logs -f comfyui-grok
 
 ## Status
 
-**v1.0 – Exclusive Grok Build Edition**  
+**v1.0.0 – Exclusive Grok Build Edition**  
 Focused purely on the hybrid workflow: **Grok Imagine → ComfyUI refine/video → back to Cinematic Studio**.
+
+Scaffold includes Docker + local install paths, Grok-optimized workflows, model downloader, and CI validation.
 
 If you are not using Grok Imagine as your primary image generator, this repo is not for you.

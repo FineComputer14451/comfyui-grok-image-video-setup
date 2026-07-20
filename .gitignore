@@ -42,3 +42,7 @@ Thumbs.db
 user/
 temp/
 .cache/
+
+# Local non-Docker install (install-local.sh)
+.local/
+scripts/run-local.sh
