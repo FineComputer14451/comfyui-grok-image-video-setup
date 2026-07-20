@@ -4,11 +4,11 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        COMFYUI_REF: master
-    image: comfyui-grok-build:latest
+        COMFYUI_REF: ${COMFYUI_REF:-master}
+    image: ${IMAGE:-comfyui-grok-build:latest}
     container_name: comfyui-grok-build
     ports:
-      - "8188:8188"
+      - "${COMFYUI_HOST_PORT:-8188}:8188"
     volumes:
       - ./models:/app/models
       - ./input:/app/input

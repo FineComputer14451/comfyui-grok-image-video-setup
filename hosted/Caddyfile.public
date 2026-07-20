@@ -1,0 +1,35 @@
+# Use this Caddyfile when HOSTED_DOMAIN is a real public hostname with DNS pointing here.
+# Swap in compose:  ./hosted/Caddyfile.public:/etc/caddy/Caddyfile:ro
+
+{
+	email {$HOSTED_EMAIL}
+}
+
+{$HOSTED_DOMAIN} {
+	# Let's Encrypt (public DNS required)
+	basicauth {
+		{$HOSTED_BASIC_USER:grok} {$HOSTED_BASIC_HASH}
+	}
+
+	encode gzip zstd
+
+	reverse_proxy comfyui-grok:8188 {
+		flush_interval -1
+		transport http {
+			read_timeout 0
+			write_timeout 0
+		}
+	}
+
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options SAMEORIGIN
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}

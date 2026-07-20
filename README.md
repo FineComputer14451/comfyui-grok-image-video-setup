@@ -61,7 +61,21 @@ Stop:
 docker compose down
 ```
 
-### 3b. Local install (no Docker)
+### 3b. Hosted (remote GPU + auth)
+```bash
+cp .env.example .env
+# set HOSTED_DOMAIN, HOSTED_BASIC_HASH (see docs/HOSTED.md)
+
+# optional: use CI-published image
+# export IMAGE=ghcr.io/finecomputer14451/comfyui-grok-build:latest
+
+./scripts/download-models.sh minimal
+./scripts/hosted-up.sh
+```
+Adds **Caddy** basic-auth reverse proxy; optional **Cloudflare Tunnel**.  
+Full guide: **[docs/HOSTED.md](docs/HOSTED.md)** · RunPod: **[hosted/runpod/README.md](hosted/runpod/README.md)**
+
+### 3c. Local install (no Docker)
 ```bash
 ./scripts/install-local.sh
 ./scripts/download-models.sh minimal
@@ -153,20 +167,27 @@ This repo is intentionally lightweight so it works well inside Grok Build / Comp
 comfyui-grok-image-video-setup/
 ├── README.md
 ├── docker-compose.yml
+├── docker-compose.hosted.yml  # Caddy + optional Cloudflare Tunnel
 ├── Dockerfile
 ├── .gitignore
 ├── .dockerignore
 ├── .env.example
+├── hosted/
+│   ├── Caddyfile
+│   ├── Caddyfile.public
+│   └── runpod/                # GPU cloud notes
 ├── workflows/                 # Grok-optimized JSON workflows
 ├── scripts/
 │   ├── entrypoint.sh
 │   ├── install-custom-nodes.sh
 │   ├── download-models.sh
+│   ├── hosted-up.sh
 │   ├── install-local.sh
 │   └── validate.sh
 ├── docs/
 │   ├── MODELS.md
-│   └── GROK_HANDOFF.md
+│   ├── GROK_HANDOFF.md
+│   └── HOSTED.md
 ├── input/                     # Drop Grok Imagine images here
 ├── output/
 ├── custom_nodes/              # Populated at install (gitignored)
@@ -194,9 +215,9 @@ docker compose logs -f comfyui-grok
 
 ## Status
 
-**v1.0.0 – Exclusive Grok Build Edition**  
+**v1.1.0 – Hosted Grok Build Edition**  
 Focused purely on the hybrid workflow: **Grok Imagine → ComfyUI refine/video → back to Cinematic Studio**.
 
-Scaffold includes Docker + local install paths, Grok-optimized workflows, model downloader, and CI validation.
+Includes Docker, **hosted** (Caddy auth + Cloudflare Tunnel + RunPod), local install, GHCR image publish CI, workflows, and model downloader.
 
 If you are not using Grok Imagine as your primary image generator, this repo is not for you.

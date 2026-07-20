@@ -1,0 +1,15 @@
+# Optional standalone cloudflared config (if not using TUNNEL_TOKEN).
+# Prefer TUNNEL_TOKEN from Zero Trust dashboard for compose profile "tunnel".
+#
+# 1. cloudflared tunnel login
+# 2. cloudflared tunnel create comfyui-grok
+# 3. Set hostname DNS CNAME to the tunnel
+# 4. Run: cloudflared tunnel --config hosted/cloudflared.yml run
+
+tunnel: REPLACE_TUNNEL_ID
+credentials-file: /etc/cloudflared/REPLACE_TUNNEL_ID.json
+
+ingress:
+  - hostname: comfyui.example.com
+    service: http://caddy:80
+  - service: http_status:404

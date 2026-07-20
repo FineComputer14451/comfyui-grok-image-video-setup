@@ -1,0 +1,42 @@
+# Hosted reverse proxy for ComfyUI (Grok bridge)
+# Set HOSTED_DOMAIN, HOSTED_EMAIL, HOSTED_BASIC_USER, HOSTED_BASIC_HASH via compose env.
+#
+# Generate password hash on any machine with caddy:
+#   docker run --rm caddy:2.9-alpine caddy hash-password --plaintext 'YOUR_PASSWORD'
+# Put the output in HOSTED_BASIC_HASH in .env
+
+{
+	email {$HOSTED_EMAIL}
+}
+
+{$HOSTED_DOMAIN:localhost} {
+	# Automatic HTTPS when domain is public DNS; local uses internal TLS
+	tls internal
+
+	basicauth {
+		{$HOSTED_BASIC_USER:grok} {$HOSTED_BASIC_HASH}
+	}
+
+	encode gzip zstd
+
+	# Long-lived websocket + large uploads for ComfyUI UI / API
+	reverse_proxy comfyui-grok:8188 {
+		flush_interval -1
+		transport http {
+			read_timeout 0
+			write_timeout 0
+		}
+	}
+
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options SAMEORIGIN
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}

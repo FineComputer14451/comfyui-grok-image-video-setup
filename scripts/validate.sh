@@ -16,9 +16,12 @@ echo
 
 echo "[1] required files"
 for f in \
-  README.md Dockerfile docker-compose.yml .gitignore \
+  README.md Dockerfile docker-compose.yml docker-compose.hosted.yml .gitignore \
   scripts/entrypoint.sh scripts/install-custom-nodes.sh scripts/download-models.sh \
-  docs/MODELS.md docs/GROK_HANDOFF.md
+  scripts/hosted-up.sh scripts/install-local.sh scripts/validate.sh \
+  docs/MODELS.md docs/GROK_HANDOFF.md docs/HOSTED.md \
+  hosted/Caddyfile hosted/Caddyfile.public hosted/runpod/start.sh \
+  .github/workflows/validate.yml .github/workflows/publish-image.yml
 do
   if [ -f "$f" ]; then ok "$f"; else fail "missing $f"; fi
 done
@@ -92,6 +95,24 @@ if ./scripts/download-models.sh list 2>/dev/null | grep -q 'wan22-i2v'; then
   ok "download-models profiles listed"
 else
   fail "download-models list broken"
+fi
+
+echo
+echo "[8] hosted stack markers"
+if grep -q 'caddy' docker-compose.hosted.yml && grep -q 'cloudflared' docker-compose.hosted.yml; then
+  ok "hosted compose has caddy + cloudflared"
+else
+  fail "hosted compose missing proxy/tunnel services"
+fi
+if grep -q 'ghcr.io' docs/HOSTED.md && grep -q 'HOSTED_BASIC_HASH' .env.example; then
+  ok "hosted docs + env example"
+else
+  fail "hosted docs/env incomplete"
+fi
+if grep -q 'Publish GHCR' .github/workflows/publish-image.yml; then
+  ok "publish-image workflow present"
+else
+  fail "publish-image workflow missing"
 fi
 
 echo

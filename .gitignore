@@ -46,3 +46,8 @@ temp/
 # Local non-Docker install (install-local.sh)
 .local/
 scripts/run-local.sh
+
+# Hosted proxy runtime state
+hosted/caddy-data/
+hosted/caddy-config/
+*.env.bak

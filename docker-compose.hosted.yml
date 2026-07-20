@@ -1,0 +1,70 @@
+# Hosted stack: ComfyUI (GPU) + Caddy (TLS/basic-auth proxy) + optional Cloudflare Tunnel
+#
+# Usage:
+#   cp .env.example .env   # set HOSTED_* vars
+#   ./scripts/hosted-up.sh
+#
+# Or:
+#   docker compose -f docker-compose.yml -f docker-compose.hosted.yml up -d --build
+#
+# Prebuilt image:
+#   IMAGE=ghcr.io/finecomputer14451/comfyui-grok-build:latest ./scripts/hosted-up.sh
+#
+# Tunnel profile (set CLOUDFLARE_TUNNEL_TOKEN in .env):
+#   docker compose -f docker-compose.yml -f docker-compose.hosted.yml --profile tunnel up -d
+
+services:
+  comfyui-grok:
+    image: ${IMAGE:-comfyui-grok-build:latest}
+    # Hosted mode: only proxy/tunnel reach ComfyUI (Compose Spec merge reset)
+    ports: !reset []
+    expose:
+      - "8188"
+    environment:
+      - CLI_ARGS=--listen 0.0.0.0 --port 8188 --enable-cors-header --preview-method auto
+      - INSTALL_CUSTOM_NODES=${INSTALL_CUSTOM_NODES:-1}
+      - INSTALL_WAN_WRAPPER=${INSTALL_WAN_WRAPPER:-0}
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    restart: unless-stopped
+    networks:
+      - grok_edge
+
+  caddy:
+    image: caddy:2.9-alpine
+    container_name: comfyui-grok-caddy
+    depends_on:
+      - comfyui-grok
+    ports:
+      - "${HOSTED_HTTP_PORT:-80}:80"
+      - "${HOSTED_HTTPS_PORT:-443}:443"
+    environment:
+      - HOSTED_DOMAIN=${HOSTED_DOMAIN:-localhost}
+      - HOSTED_EMAIL=${HOSTED_EMAIL:-admin@example.com}
+      - HOSTED_BASIC_USER=${HOSTED_BASIC_USER:-grok}
+      - HOSTED_BASIC_HASH=${HOSTED_BASIC_HASH:-}
+    volumes:
+      # For real public DNS + Let's Encrypt, switch to ./hosted/Caddyfile.public
+      - ${HOSTED_CADDYFILE:-./hosted/Caddyfile}:/etc/caddy/Caddyfile:ro
+      - ./hosted/caddy-data:/data
+      - ./hosted/caddy-config:/config
+    restart: unless-stopped
+    networks:
+      - grok_edge
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: comfyui-grok-tunnel
+    profiles: ["tunnel"]
+    depends_on:
+      - caddy
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN:-}
+    restart: unless-stopped
+    networks:
+      - grok_edge
+
+networks:
+  grok_edge:
+    driver: bridge
