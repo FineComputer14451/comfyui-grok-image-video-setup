@@ -1,0 +1,23 @@
+services:
+  comfyui-grok:
+    build: .
+    container_name: comfyui-grok-build
+    ports:
+      - "8188:8188"
+    volumes:
+      - ./models:/app/models
+      - ./input:/app/input
+      - ./output:/app/output
+      - ./custom_nodes:/app/custom_nodes
+      - ./workflows:/app/user/default/workflows
+    environment:
+      - CLI_ARGS=--listen 0.0.0.0 --port 8188 --enable-cors-header
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+    shm_size: "16gb"
