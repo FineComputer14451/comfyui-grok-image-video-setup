@@ -1,0 +1,44 @@
+# Models (large binaries — never commit)
+models/*
+!models/README.md
+!models/**/
+!models/**/.gitkeep
+
+# Runtime I/O
+input/*
+!input/.gitkeep
+!input/README.md
+output/*
+!output/.gitkeep
+!output/README.md
+
+# Custom nodes (cloned at install time)
+custom_nodes/*
+!custom_nodes/.gitkeep
+!custom_nodes/README.md
+
+# Python / tooling
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+*.log
+
+# Docker
+.docker/
+
+# ComfyUI user state (if generated on host)
+user/
+temp/
+.cache/

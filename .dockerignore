@@ -1,0 +1,15 @@
+.git
+.gitignore
+models/**
+input/**
+output/**
+custom_nodes/**
+!custom_nodes/README.md
+*.md
+!README.md
+.env
+.env.*
+user/
+temp/
+.cache/
+**/.gitkeep

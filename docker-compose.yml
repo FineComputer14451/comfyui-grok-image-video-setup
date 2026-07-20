@@ -1,6 +1,11 @@
 services:
   comfyui-grok:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        COMFYUI_REF: master
+    image: comfyui-grok-build:latest
     container_name: comfyui-grok-build
     ports:
       - "8188:8188"
@@ -10,8 +15,18 @@ services:
       - ./output:/app/output
       - ./custom_nodes:/app/custom_nodes
       - ./workflows:/app/user/default/workflows
+      - ./scripts:/app/scripts:ro
     environment:
-      - CLI_ARGS=--listen 0.0.0.0 --port 8188 --enable-cors-header
+      - CLI_ARGS=--listen 0.0.0.0 --port 8188 --enable-cors-header --preview-method auto
+      # Set to 1 on first run to clone recommended custom nodes into ./custom_nodes
+      - INSTALL_CUSTOM_NODES=${INSTALL_CUSTOM_NODES:-0}
+      - INSTALL_WAN_WRAPPER=${INSTALL_WAN_WRAPPER:-0}
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    gpus: all
+    shm_size: "16gb"
+    restart: unless-stopped
+    # deploy block retained for Swarm / older compose parsers
     deploy:
       resources:
         reservations:
@@ -19,5 +34,3 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
-    restart: unless-stopped
-    shm_size: "16gb"

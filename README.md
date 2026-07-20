@@ -23,6 +23,17 @@ It is a specialized local bridge designed exclusively for people who generate im
 
 ---
 
+## Prerequisites
+
+- Linux host with **NVIDIA GPU** + recent drivers
+- [Docker](https://docs.docker.com/engine/install/) + [Docker Compose](https://docs.docker.com/compose/)
+- [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
+- Confirm GPU passthrough: `nvidia-smi` and `docker run --rm --gpus all nvidia/cuda:12.4.1-base-ubuntu22.04 nvidia-smi`
+
+CPU-only is possible but **not** practical for Wan I2V.
+
+---
+
 ## Quick Start (Recommended Path)
 
 ### 1. Generate in Grok
@@ -34,14 +45,29 @@ git clone https://github.com/FineComputer14451/comfyui-grok-image-video-setup.gi
 cd comfyui-grok-image-video-setup
 ```
 
-### 3. Launch with Docker (easiest)
+### 3. Launch with Docker
 ```bash
+# First build (pulls PyTorch + clones ComfyUI — several minutes)
 docker compose up -d --build
+
+# Optional: also install recommended custom nodes on first start
+INSTALL_CUSTOM_NODES=1 docker compose up -d --build
 ```
+
 Open → http://localhost:8188
 
+Stop:
+```bash
+docker compose down
+```
+
 ### 4. Drop Grok images into `input/`
-Then load one of the workflows from the `workflows/` folder.
+Then load a workflow from the **Workflows** menu (user folder) or open files under `workflows/`.
+
+### 5. Install models
+See **[docs/MODELS.md](docs/MODELS.md)** for exact paths and download links (Wan 2.2 preferred for I2V; upscalers for refine).
+
+Handoff guide: **[docs/GROK_HANDOFF.md](docs/GROK_HANDOFF.md)**.
 
 ---
 
@@ -50,10 +76,10 @@ Then load one of the workflows from the `workflows/` folder.
 | File | Purpose |
 |------|---------|
 | `01_grok_refine.json` | Clean up + upscale a Grok Imagine still |
-| `02_grok_to_video_wan21.json` | Image-to-Video using Wan 2.1 |
-| `03_grok_to_video_wan22.json` | Image-to-Video using Wan 2.2 (preferred) |
-| `04_face_detail_lock.json` | Heavy face restoration while keeping Grok identity |
-| `05_cinematic_upscale.json` | High-end upscale + film grain + final grade prep |
+| `02_grok_to_video_wan21.json` | Image-to-Video using Wan 2.1 (Comfy-Org template) |
+| `03_grok_to_video_wan22.json` | Image-to-Video using Wan 2.2 (preferred, Comfy-Org template) |
+| `04_face_detail_lock.json` | Face-preserving refine path (optional Impact Pack restore) |
+| `05_cinematic_upscale.json` | High-end upscale + resolution target for grade prep |
 
 All workflows are designed so the **first image you load is a Grok Imagine output**.
 
@@ -61,17 +87,31 @@ All workflows are designed so the **first image you load is a Grok Imagine outpu
 
 ## Recommended Local Models
 
-Place models in the correct folders under `models/`:
+Place models under `models/` (gitignored):
 
 **For refinement**
-- Any high-quality upscaler (4x-UltraSharp, RealESRGAN, etc.)
-- Face restoration models (CodeFormer / GFPGAN via nodes)
+- Any high-quality upscaler (`4x-UltraSharp`, RealESRGAN, etc.) → `models/upscale_models/`
+- Face restoration weights if you enable Impact Pack → `models/facerestore_models/`
 
-**For video (Wan)**
-- `wan2.1_i2v_720p_14B` or newer Wan 2.2 variants
-- Matching VAE + CLIP Vision models
+**For video (Wan 2.2 preferred)**
+- `wan2.2_i2v_*_14B_*.safetensors` → `models/diffusion_models/`
+- `umt5_xxl_fp8_e4m3fn_scaled.safetensors` → `models/text_encoders/`
+- `wan_2.1_vae.safetensors` → `models/vae/`
 
-See `docs/MODELS.md` for exact download links and placement.
+Full links and VRAM notes: **[docs/MODELS.md](docs/MODELS.md)**.
+
+---
+
+## Custom nodes
+
+Minimal set (Manager, VideoHelperSuite, Impact Pack, essentials, GGUF):
+
+```bash
+./scripts/install-custom-nodes.sh
+# or INSTALL_CUSTOM_NODES=1 docker compose up -d
+```
+
+Optional Kijai Wan wrapper: `INSTALL_WAN_WRAPPER=1` (native ComfyUI Wan nodes are preferred for the bundled templates).
 
 ---
 
@@ -94,15 +134,36 @@ comfyui-grok-image-video-setup/
 ├── docker-compose.yml
 ├── Dockerfile
 ├── .gitignore
+├── .dockerignore
+├── .env.example
 ├── workflows/                 # Grok-optimized JSON workflows
 ├── scripts/
+│   ├── entrypoint.sh
 │   └── install-custom-nodes.sh
 ├── docs/
 │   ├── MODELS.md
 │   └── GROK_HANDOFF.md
 ├── input/                     # Drop Grok Imagine images here
 ├── output/
+├── custom_nodes/              # Populated at install (gitignored)
 └── models/                    # Local models (gitignored)
+```
+
+---
+
+## Troubleshooting
+
+| Issue | What to try |
+|-------|-------------|
+| Build fails on torch/CUDA | Need NVIDIA drivers + container toolkit; base image is CUDA 12.4 |
+| UI up but GPU not used | `docker compose exec comfyui-grok python -c "import torch; print(torch.cuda.is_available())"` |
+| Missing nodes (red) | `INSTALL_CUSTOM_NODES=1 docker compose up -d` then restart |
+| Model missing in dropdown | Check folder under `models/` per MODELS.md; restart container |
+| Port 8188 in use | Change host port in `docker-compose.yml` (`"8189:8188"`) |
+
+Logs:
+```bash
+docker compose logs -f comfyui-grok
 ```
 
 ---
