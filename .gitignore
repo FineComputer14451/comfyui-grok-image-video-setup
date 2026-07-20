@@ -1,19 +1,19 @@
 # Models (large binaries — never commit)
-models/*
+models/**
 !models/README.md
 !models/**/
 !models/**/.gitkeep
 
 # Runtime I/O
-input/*
+input/**
 !input/.gitkeep
 !input/README.md
-output/*
+output/**
 !output/.gitkeep
 !output/README.md
 
 # Custom nodes (cloned at install time)
-custom_nodes/*
+custom_nodes/**
 !custom_nodes/.gitkeep
 !custom_nodes/README.md
 
