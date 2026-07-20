@@ -65,8 +65,16 @@ docker compose down
 Then load a workflow from the **Workflows** menu (user folder) or open files under `workflows/`.
 
 ### 5. Install models
-See **[docs/MODELS.md](docs/MODELS.md)** for exact paths and download links (Wan 2.2 preferred for I2V; upscalers for refine).
+```bash
+# Upscaler for refine workflows (small)
+./scripts/download-models.sh minimal
 
+# Optional: Wan 2.2 lighter 5B video stack, or full 14B I2V
+./scripts/download-models.sh wan22-5b
+# ./scripts/download-models.sh wan22-i2v
+```
+
+Full paths and profiles: **[docs/MODELS.md](docs/MODELS.md)**.  
 Handoff guide: **[docs/GROK_HANDOFF.md](docs/GROK_HANDOFF.md)**.
 
 ---
@@ -139,7 +147,8 @@ comfyui-grok-image-video-setup/
 ├── workflows/                 # Grok-optimized JSON workflows
 ├── scripts/
 │   ├── entrypoint.sh
-│   └── install-custom-nodes.sh
+│   ├── install-custom-nodes.sh
+│   └── download-models.sh
 ├── docs/
 │   ├── MODELS.md
 │   └── GROK_HANDOFF.md

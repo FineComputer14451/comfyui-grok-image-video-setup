@@ -104,8 +104,33 @@ https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged
 
 ## D. Quick download helpers
 
+Use the bundled script (resumable, skips existing files):
+
 ```bash
-# Example: umT5 text encoder
+./scripts/download-models.sh list
+
+# Start here — upscaler for refine workflows 01/04/05 (~64MB)
+./scripts/download-models.sh minimal
+
+# Upscalers only (UltraSharp + RealESRGAN)
+./scripts/download-models.sh refine
+
+# Shared text encoder + VAE for Wan
+./scripts/download-models.sh shared
+
+# Lighter video path (~8GB+ VRAM with offload)
+./scripts/download-models.sh wan22-5b
+
+# Full Wan 2.2 14B I2V (heavy — tens of GB, ~24GB+ VRAM)
+./scripts/download-models.sh wan22-i2v
+
+# Everything refine + 14B I2V + clip vision
+./scripts/download-models.sh all
+```
+
+Manual one-offs:
+
+```bash
 mkdir -p models/text_encoders models/vae models/diffusion_models models/upscale_models
 
 wget -c -O models/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors \
@@ -114,8 +139,6 @@ wget -c -O models/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors \
 wget -c -O models/vae/wan_2.1_vae.safetensors \
   "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors"
 ```
-
-Download large diffusion weights the same way (expect tens of GB).
 
 ---
 
